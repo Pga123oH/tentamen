@@ -143,8 +143,9 @@ try { done = new Set(JSON.parse(localStorage.getItem(KEY) || "[]")); } catch (e)
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify([...done])); } catch (e) {} };
 
 /* ---------- render static parts ---------- */
-$("#signal-list").innerHTML = SIGNALS.map(x => `
-  <li class="signal${x.top ? " top" : ""}">
+const SHOW_SIGNALS = 5;
+$("#signal-list").innerHTML = SIGNALS.map((x, i) => `
+  <li class="signal${x.top ? " top" : ""}${i >= SHOW_SIGNALS && !x.top ? " extra" : ""}">
     <span class="rail s-${x.s}"></span>
     <div>
       <h3>${esc(x.t)}</h3>
@@ -152,6 +153,19 @@ $("#signal-list").innerHTML = SIGNALS.map(x => `
       <div class="meta"><span class="tag">${STRENGTH[x.s]}</span><span>Slide ${esc(x.sl)}</span><span class="mono">${esc(x.w)}</span></div>
     </div>
   </li>`).join("");
+{
+  const more = document.createElement("button");
+  more.type = "button";
+  more.className = "more";
+  const hidden = SIGNALS.filter((x, i) => i >= SHOW_SIGNALS && !x.top).length;
+  more.textContent = `Tampilkan ${hidden} sinyal lainnya`;
+  more.addEventListener("click", () => {
+    const open = $("#signal-list").classList.toggle("all");
+    more.textContent = open ? "Ringkas lagi" : `Tampilkan ${hidden} sinyal lainnya`;
+    if (!open) $("#sinyal").scrollIntoView();
+  });
+  $("#signal-list").after(more);
+}
 
 $("#remarks").innerHTML = REMARKS.map(g => `
   <div class="remark-group">
@@ -183,6 +197,9 @@ $("#skipped").innerHTML = SKIPPED.map(([t, sl]) => `<li><span>${esc(t)}</span><s
 /* ---------- structures: filter, search, checklist ---------- */
 let filter = "semua";
 let query = "";
+const isMobile = () => window.matchMedia("(max-width: 600px)").matches;
+// On phones only the first group starts open, so the list isn't 50 rows long.
+const openGroups = new Set(isMobile() ? [GROUPS[0].id] : GROUPS.map(g => g.id));
 const ALL = GROUPS.flatMap(g => g.items.map(i => g.id + "|" + i[0]));
 
 function highlight(text) {
@@ -205,12 +222,16 @@ function renderGroups() {
     if (!rows.length) return "";
     shown += rows.length;
     const groupDone = g.items.filter(i => done.has(g.id + "|" + i[0])).length;
+    const forced = q || filter !== "semua";
+    const open = forced || openGroups.has(g.id);
     return `
-      <div class="group">
-        <div class="group-head">
-          <h3>${esc(g.t)}</h3><span class="slides">${esc(g.sl)}</span>
+      <div class="group${open ? " open" : ""}" data-g="${g.id}">
+        <button type="button" class="group-head" aria-expanded="${open}"${forced ? " disabled" : ""}>
+          <span class="gh-text"><h3>${esc(g.t)}</h3><span class="slides">${esc(g.sl)} &middot; ${rows.length} struktur</span></span>
           <span class="count">${groupDone}/${g.items.length}</span>
-        </div>
+          <span class="caret" aria-hidden="true"></span>
+        </button>
+        <div class="group-body">
         ${rows.map(([n, st, d, sl, w]) => {
           const id = g.id + "|" + n;
           const on = done.has(id);
@@ -225,6 +246,7 @@ function renderGroups() {
             </div>
           </div>`;
         }).join("")}
+        </div>
       </div>`;
   }).join("");
   $("#empty").hidden = shown > 0;
@@ -245,6 +267,7 @@ $("#groups").addEventListener("change", e => {
   if (filter === "sisa") renderGroups();
   else {
     e.target.closest(".item").classList.toggle("done", e.target.checked);
+    if (navigator.vibrate && e.target.checked) { try { navigator.vibrate(8); } catch (_) {} }
     const head = e.target.closest(".group").querySelector(".count");
     const g = GROUPS.find(g => id.startsWith(g.id + "|"));
     head.textContent = `${g.items.filter(i => done.has(g.id + "|" + i[0])).length}/${g.items.length}`;
@@ -252,11 +275,30 @@ $("#groups").addEventListener("change", e => {
   }
 });
 
+// Tap anywhere on a row to tick it; tap a group header to fold it.
+$("#groups").addEventListener("click", e => {
+  const head = e.target.closest(".group-head");
+  if (head) {
+    if (head.disabled) return;
+    const g = head.closest(".group");
+    const open = g.classList.toggle("open");
+    head.setAttribute("aria-expanded", open);
+    open ? openGroups.add(g.dataset.g) : openGroups.delete(g.dataset.g);
+    if (!open && head.getBoundingClientRect().top < 0) head.scrollIntoView({ block: "start" });
+    return;
+  }
+  const item = e.target.closest(".item");
+  if (!item || e.target.closest("input, label")) return;
+  if (window.getSelection && String(window.getSelection())) return; // user is selecting text
+  item.querySelector("input").click();
+});
+
 $("#chips").addEventListener("click", e => {
   const b = e.target.closest(".chip");
   if (!b) return;
   filter = b.dataset.f;
   document.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c === b));
+  b.scrollIntoView({ block: "nearest", inline: "center" });
   renderGroups();
 });
 
@@ -269,13 +311,31 @@ $("#q").addEventListener("input", e => {
 renderGroups();
 
 /* ---------- active section in nav ---------- */
+const nav = $(".toc-inner");
 const links = [...document.querySelectorAll(".toc a")];
 const obs = new IntersectionObserver(entries => {
   entries.forEach(en => {
     if (!en.isIntersecting) return;
     links.forEach(a => a.classList.toggle("active", a.getAttribute("href") === "#" + en.target.id));
     const a = links.find(a => a.classList.contains("active"));
-    if (a) a.scrollIntoView({ block: "nearest", inline: "nearest" });
+    // Scroll only the nav strip sideways; never move the page itself.
+    if (a) nav.scrollTo({ left: a.offsetLeft - (nav.clientWidth - a.offsetWidth) / 2, behavior: "smooth" });
   });
 }, { rootMargin: "-45% 0px -50% 0px" });
 document.querySelectorAll("main .sec").forEach(s => obs.observe(s));
+
+/* ---------- back to top ---------- */
+const topBtn = $("#to-top");
+let ticking = false;
+window.addEventListener("scroll", () => {
+  if (ticking) return;
+  ticking = true;
+  requestAnimationFrame(() => {
+    topBtn.classList.toggle("show", window.scrollY > 900);
+    ticking = false;
+  });
+}, { passive: true });
+topBtn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+// Enter on the search box closes the phone keyboard so results are visible.
+$("#q").addEventListener("keydown", e => { if (e.key === "Enter") e.target.blur(); });
