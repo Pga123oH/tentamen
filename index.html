@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>I.3 Sesi 2 · Catatan Praktikum Anatomi</title>
-  <meta name="description" content="Rangkuman praktikum Abdominal Wall & GIT: struktur yang terlihat di preparat, sinyal tentamen, dan catatan asisten.">
+  <title>Catatan Praktikum Anatomi · Blok I.3</title>
+  <meta name="description" content="Rangkuman praktikum anatomi Blok I.3 per sesi: struktur yang terlihat di preparat, sinyal tentamen, dan catatan asisten.">
   <meta name="theme-color" content="#f5f0e6">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%226%22 fill=%22%237d2a2a%22/%3E%3Ctext x=%2216%22 y=%2222%22 font-family=%22Georgia%22 font-size=%2216%22 fill=%22%23f5f0e6%22 text-anchor=%22middle%22%3EI.3%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="style.css">
@@ -12,9 +12,10 @@
 <body>
   <header class="masthead">
     <div class="wrap">
-      <p class="kicker">Blok I.3 &middot; Praktikum Anatomi &middot; Sesi 2</p>
-      <h1>Abdominal Wall &amp; Saluran Cerna</h1>
-      <p class="lede">Hasil mencocokkan rekaman praktikum dengan PPT Ajar Atrium. Isinya: apa yang terlihat di preparat, apa yang kemungkinan keluar saat tentamen, dan apa saja yang ditekankan asisten.</p>
+      <div class="sessions" id="sessions" role="group" aria-label="Pilih sesi praktikum"></div>
+      <p class="kicker" id="kicker"></p>
+      <h1 id="title"></h1>
+      <p class="lede" id="lede"></p>
       <p class="caveat"><strong>Bukan kunci resmi.</strong> Rangkuman ini dibuat dari transkrip otomatis yang banyak bagiannya tidak terbaca. Waktu (mis. <span class="mono">05:00</span>) menunjukkan awal blok rekaman, bukan detik persisnya.</p>
     </div>
   </header>
@@ -36,7 +37,7 @@
         <span class="num">01</span>
         <div>
           <h2>Sinyal tentamen</h2>
-          <p class="sec-lede">Sinyal paling jelas: limfatik sesi ini kemungkinan tidak keluar, dan anomali paling banyak satu nomor.</p>
+          <p class="sec-lede" id="lede-sinyal"></p>
         </div>
       </div>
       <div class="strength-key" aria-hidden="true">
@@ -60,7 +61,7 @@
       <div class="tools" role="search">
         <label class="search">
           <span class="sr">Cari struktur</span>
-          <input id="q" type="search" placeholder="Cari struktur, mis. taenia, linea, fascia…" autocomplete="off">
+          <input id="q" type="search" placeholder="Cari struktur…" autocomplete="off">
         </label>
         <div class="chips" id="chips" role="group" aria-label="Filter status">
           <button type="button" class="chip on" data-f="semua">Semua</button>
@@ -95,7 +96,7 @@
         <span class="num">03</span>
         <div>
           <h2>Kata asisten</h2>
-          <p class="sec-lede">Penekanan terkuat ada pada linea pectinata, vagina m. recti, dan bagian yang diminta dihafal. Kutipan diambil dari transkrip, jadi cocokkan dengan audio bila perlu.</p>
+          <p class="sec-lede" id="lede-remarks"></p>
         </div>
       </div>
       <div id="remarks"></div>
@@ -117,7 +118,7 @@
         <span class="num">05</span>
         <div>
           <h2>Perlu dicek ulang</h2>
-          <p class="sec-lede">Ada yang berbeda antara rekaman dan PPT. Tanyakan ke asisten atau cek atlas sebelum menghafal.</p>
+          <p class="sec-lede" id="lede-cek"></p>
         </div>
       </div>
       <div id="checks" class="checks"></div>
@@ -132,18 +133,20 @@
         </div>
       </div>
       <ul id="skipped" class="skipped"></ul>
-      <p class="note">Rekaman paling rusak di sekitar <span class="mono">00:00</span>, <span class="mono">55:00</span>, dan <span class="mono">01:15–01:40</span>. Kalau punya audionya, putar ulang bagian itu, terutama "yang paling penting ini" di blok <span class="mono">01:25</span>.</p>
+      <p class="note" id="skipped-note"></p>
     </section>
   </main>
 
   <footer class="foot">
     <div class="wrap">
-      <p>Sumber: rekaman praktikum Sesi 2 dan PPT Ajar Atrium "I.3 Sesi 2 Abdominal Wall and GIT". Nomor slide mengikuti PDF PPT tersebut.</p>
+      <p>Sumber: rekaman praktikum dan PPT Ajar Atrium "<span id="ppt-name"></span>". Nomor slide mengikuti PDF PPT tersebut.</p>
       <p>Dirangkum dengan bantuan Claude. Kalau menemukan kesalahan, kabari pembuatnya.</p>
     </div>
   </footer>
 
   <button type="button" id="to-top" class="to-top" aria-label="Kembali ke atas">&uarr;</button>
+  <script src="data/sesi1.js"></script>
+  <script src="data/sesi2.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
